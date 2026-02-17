@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import SignOutButton from '@/app/components/SignOutButton';
+import VoteButtons from '@/app/components/VoteButtons';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function ProtectedPage() {
@@ -13,12 +14,18 @@ export default async function ProtectedPage() {
     redirect('/login');
   }
 
-  const { data, error } = await supabase.from('images').select('*').limit(50);
+  const isLoggedIn = !!user;
 
-  const images =
+  const { data, error } = await supabase
+    .from('captions')
+    .select('id, content, like_count')
+    .limit(50);
+
+  const captions =
     data?.map((row) => ({
-      id: (row as Record<string, unknown>).id,
-      url: (row as Record<string, unknown>).url,
+      id: row.id as string,
+      content: row.content as string | null,
+      likeCount: row.like_count as number,
     })) ?? [];
 
   return (
@@ -28,27 +35,29 @@ export default async function ProtectedPage() {
       <SignOutButton />
 
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Images</h2>
+        <h2 className="text-xl font-semibold">Captions</h2>
         {error ? (
-          <p>Could not load images. Please try again.</p>
-        ) : images.length > 0 ? (
-          <div className="space-y-2">
-            <p>{images.length} rows</p>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {images.map((image, index) => (
-                <div key={String(image.id ?? index)} className="border p-2">
-                  {typeof image.url === 'string' && image.url.length > 0 ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={image.url} alt="" className="w-full h-auto" />
-                  ) : (
-                    <p>Missing image URL</p>
-                  )}
+          <p>Could not load captions. Please try again.</p>
+        ) : captions.length > 0 ? (
+          <div className="space-y-3">
+            <p>{captions.length} captions</p>
+            {captions.map((caption) => (
+              <div
+                key={caption.id}
+                className="border rounded p-4 flex items-start justify-between gap-4"
+              >
+                <div className="flex-1">
+                  <p>{caption.content ?? 'No text'}</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Likes: {caption.likeCount}
+                  </p>
                 </div>
-              ))}
-            </div>
+                <VoteButtons captionId={caption.id} disabled={!isLoggedIn} />
+              </div>
+            ))}
           </div>
         ) : (
-          <p>No images found.</p>
+          <p>No captions found.</p>
         )}
       </div>
     </div>
