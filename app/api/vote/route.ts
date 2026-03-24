@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       .from('caption_votes')
       .update({
         vote_value: voteValue,
-        modified_datetime_utc: new Date().toISOString(),
+        modified_by_user_id: profile.id,
       })
       .eq('id', existingVote.id);
 
@@ -66,7 +66,8 @@ export async function POST(request: NextRequest) {
         vote_value: voteValue,
         profile_id: profile.id,
         caption_id: captionId,
-        created_datetime_utc: new Date().toISOString(),
+        created_by_user_id: profile.id,
+        modified_by_user_id: profile.id,
       });
 
     if (insertError) {
