@@ -5,6 +5,7 @@ import SignOutButton from "@/app/components/SignOutButton";
 import ProfileForm from "@/app/components/ProfileForm";
 import JokeGenerator from "@/app/components/JokeGenerator";
 import VoteButtons from "@/app/components/VoteButtons";
+import SiteHeader from "@/app/components/SiteHeader";
 
 export default async function Home() {
   const supabase = await createSupabaseServerClient();
@@ -50,16 +51,16 @@ export default async function Home() {
   }
 
   return (
-    <div className="p-8">
-      <div className="flex items-center gap-4 mb-8">
+    <>
+      <SiteHeader>
         {user ? (
           <>
-            <span className="text-gray-700">
+            <span className="hidden max-w-40 truncate text-sm text-muted sm:inline">
               {needsProfile
                 ? user.email
                 : `${profile!.first_name} ${profile!.last_name}`}
             </span>
-            <Link href="/profile" className="text-blue-600 hover:underline">
+            <Link href="/profile" className="btn btn-ghost">
               Profile
             </Link>
             <SignOutButton />
@@ -67,45 +68,110 @@ export default async function Home() {
         ) : (
           <SignInButton />
         )}
-      </div>
+      </SiteHeader>
 
-      {needsProfile && <ProfileForm />}
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-16 sm:px-6">
+        <section className="pt-10 pb-8 sm:pt-14">
+          <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+            AI jokes, judged by humans.
+          </h1>
+          <p className="mt-3 text-base text-muted sm:text-lg">
+            Pick a topic, get a joke, then vote on whether it actually lands.
+          </p>
+        </section>
 
-      {user && <JokeGenerator />}
+        {needsProfile && <ProfileForm />}
 
-      <h1 className="text-2xl font-bold mb-4">Jokes</h1>
-      {generationsError ? (
-        <p className="text-red-600 mb-8">{generationsError.message}</p>
-      ) : (
-        <ul className="space-y-4 mb-8 max-w-xl">
-          {generations?.map((gen) => {
-            const counts = voteCounts.get(gen.id) ?? { up: 0, down: 0 };
-            return (
-              <li key={gen.id} className="rounded border p-3">
-                <p className="whitespace-pre-wrap">{gen.content}</p>
-                <p className="mt-1 text-sm text-gray-500">
-                  Topic: {gen.prompt}
-                </p>
-                <p className="mt-1 text-sm">
-                  👍 {counts.up} · 👎 {counts.down}
-                </p>
-                {user && <VoteButtons generationId={gen.id} />}
-              </li>
-            );
-          })}
-        </ul>
-      )}
+        {user ? (
+          <JokeGenerator />
+        ) : (
+          <section className="card mb-10 flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div>
+              <h2 className="font-semibold">Want to write and rate jokes?</h2>
+              <p className="mt-1 text-sm text-muted">
+                Sign in to generate your own and vote. Reading is free.
+              </p>
+            </div>
+            <SignInButton />
+          </section>
+        )}
 
-      <h1 className="text-2xl font-bold mb-4">Messages</h1>
-      {error ? (
-        <p className="text-red-600">{error.message}</p>
-      ) : (
-        <ul className="list-disc pl-5 space-y-1">
-          {messages?.map((msg) => (
-            <li key={msg.id}>{msg.text}</li>
-          ))}
-        </ul>
-      )}
-    </div>
+        <section className="mb-12">
+          <h2 className="mb-4 text-xl font-semibold tracking-tight">
+            Latest jokes
+          </h2>
+          {generationsError ? (
+            <p className="alert-error">{generationsError.message}</p>
+          ) : generations && generations.length === 0 ? (
+            <div className="card border-dashed p-8 text-center shadow-none">
+              <p className="text-2xl" aria-hidden>
+                🦗
+              </p>
+              <p className="mt-2 font-medium">No jokes yet.</p>
+              <p className="mt-1 text-sm text-muted">
+                {user
+                  ? "Enter a topic above to write the first one."
+                  : "Sign in to write the first one."}
+              </p>
+            </div>
+          ) : (
+            <ul className="space-y-4">
+              {generations?.map((gen) => {
+                const counts = voteCounts.get(gen.id) ?? { up: 0, down: 0 };
+                return (
+                  <li key={gen.id} className="card p-5 sm:p-6">
+                    <p className="text-lg leading-relaxed break-words whitespace-pre-wrap">
+                      {gen.content}
+                    </p>
+                    <p className="mt-3 text-sm break-words text-muted">
+                      <span className="font-medium text-foreground">
+                        Topic:
+                      </span>{" "}
+                      {gen.prompt}
+                    </p>
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+                      <div className="flex items-center gap-2">
+                        <span className="pill">
+                          <span aria-hidden>👍</span>
+                          {counts.up}
+                          <span className="sr-only">upvotes</span>
+                        </span>
+                        <span className="pill">
+                          <span aria-hidden>👎</span>
+                          {counts.down}
+                          <span className="sr-only">downvotes</span>
+                        </span>
+                      </div>
+                      {user ? (
+                        <VoteButtons generationId={gen.id} />
+                      ) : (
+                        <span className="text-sm text-muted">
+                          Sign in to vote
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+
+        <section>
+          <h2 className="mb-4 text-xl font-semibold tracking-tight">
+            Messages
+          </h2>
+          {error ? (
+            <p className="alert-error">{error.message}</p>
+          ) : (
+            <ul className="list-disc space-y-1 pl-5 text-muted">
+              {messages?.map((msg) => (
+                <li key={msg.id}>{msg.text}</li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </main>
+    </>
   );
 }

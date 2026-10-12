@@ -16,14 +16,14 @@ export default function VoteButtons({
   );
 
   return (
-    <form action={formAction} className="mt-2 flex items-center gap-2">
+    <form action={formAction} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="generation_id" value={generationId} />
       <button
         type="submit"
         name="vote"
         value="1"
         disabled={pending}
-        className="rounded border px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
+        className="btn btn-secondary px-3.5 py-1.5"
       >
         👍 Upvote
       </button>
@@ -32,12 +32,12 @@ export default function VoteButtons({
         name="vote"
         value="-1"
         disabled={pending}
-        className="rounded border px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
+        className="btn btn-secondary px-3.5 py-1.5"
       >
         👎 Downvote
       </button>
       {state.message && (
-        <span aria-live="polite" className="text-sm text-red-600">
+        <span aria-live="polite" className="text-sm text-danger">
           {state.message}
         </span>
       )}
