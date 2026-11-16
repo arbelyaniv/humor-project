@@ -9,8 +9,10 @@ export interface JokeState {
   error?: string;
 }
 
-const PRIMARY_MODEL = "gemini-3.8-flash";
-const FALLBACK_MODEL = "gemini-3.5-flash";
+// Flash-Lite models: plenty for a one-line joke, and they stay available when
+// the full Flash models return 503 (high demand) / 504 (deadline exceeded).
+const PRIMARY_MODEL = "gemini-3.5-flash-lite";
+const FALLBACK_MODEL = "gemini-3.1-flash-lite";
 // Waits before each retry of the primary model; length = max retries.
 const RETRY_DELAYS_MS = [500, 1000];
 // Without a timeout an overloaded model can leave the request hanging.
